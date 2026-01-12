@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Household Search</title>
+    <script src="/static/script.js" defer></script>
+</head>
+<body>
+
+<h2>Search Household Head</h2>
+
+<input type="text" id="nameInput" placeholder="Type a name..." autocomplete="off">
+<div id="dropdown"></div>
+
+<p id="result"></p>
+
+</body>
+</html>

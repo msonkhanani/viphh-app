@@ -1,0 +1,36 @@
+const input = document.getElementById("nameInput");
+const dropdown = document.getElementById("dropdown");
+const result = document.getElementById("result");
+
+input.addEventListener("input", async () => {
+    const q = input.value.trim();
+    dropdown.innerHTML = "";
+    if (!q) return;
+
+    const res = await fetch(`/search?q=${encodeURIComponent(q)}`);
+    const names = await res.json();
+
+    names.forEach(name => {
+        const div = document.createElement("div");
+        div.textContent = name;
+        div.onclick = () => selectName(name);
+        dropdown.appendChild(div);
+    });
+});
+
+async function selectName(name) {
+    input.value = name;
+    dropdown.innerHTML = "";
+
+    const res = await fetch(`/details?name=${encodeURIComponent(name)}`);
+    const data = await res.json();
+
+    if (data.household_id) {
+        result.innerHTML =
+            `Name: ${data.household_head}<br>
+             Household ID: ${data.household_id}<br>
+             Village: ${data.village}`;
+    } else {
+        result.textContent = "Not found";
+    }
+}
