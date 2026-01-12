@@ -10,8 +10,6 @@ searchInput.addEventListener("input", async () => {
 
     try {
         const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
-        if (!response.ok) throw new Error("Network response was not ok");
-
         const data = await response.json();
 
         resultsList.innerHTML = "";

@@ -4,13 +4,13 @@ import os
 
 app = Flask(__name__)
 
-# Load Excel registry
+# Path to Excel file
 EXCEL_FILE = os.path.join(os.path.dirname(__file__), "household_list.xlsx")
 
 def load_household_data():
-    """Read the Excel file fresh each time to get latest entries."""
+    """Load Excel file fresh every search to get the latest entries"""
     df = pd.read_excel(EXCEL_FILE)
-    # Normalize column names to lowercase and remove spaces
+    # Normalize column names
     df.columns = [c.strip().lower() for c in df.columns]
     return df
 
@@ -24,8 +24,11 @@ def search():
     if len(query) < 2:
         return jsonify([])
 
-    df = load_household_data()  # load fresh every request
-    # filter household_head containing query
+    df = load_household_data()
+    # Ensure 'household_head' exists in Excel
+    if "household_head" not in df.columns:
+        return jsonify([])
+
     results = df[df["household_head"].str.lower().str.contains(query, na=False)]
 
     return jsonify(
