@@ -1,12 +1,18 @@
 from flask import Flask, render_template, request, jsonify
 import pandas as pd
+import os
 
 app = Flask(__name__)
 
-# Load Excel data
-data = pd.read_excel("household_list.xlsx")
-data['household_head'] = data['household_head'].astype(str)
-data['village'] = data['village'].astype(str)
+# Load Excel registry
+EXCEL_FILE = os.path.join(os.path.dirname(__file__), "household_list.xlsx")
+
+def load_household_data():
+    """Read the Excel file fresh each time to get latest entries."""
+    df = pd.read_excel(EXCEL_FILE)
+    # Normalize column names to lowercase and remove spaces
+    df.columns = [c.strip().lower() for c in df.columns]
+    return df
 
 @app.route("/")
 def index():
@@ -14,24 +20,19 @@ def index():
 
 @app.route("/search")
 def search():
-    q = request.args.get("q", "")
-    matches = data[data['household_head']
-                   .str.contains(q, case=False, na=False)].head(10)
-    return jsonify(matches['household_head'].tolist())
+    query = request.args.get("q", "").strip().lower()
+    if len(query) < 2:
+        return jsonify([])
 
-@app.route("/details")
-def details():
-    name = request.args.get("name", "")
-    match = data[data['household_head'].str.lower() == name.lower()]
+    df = load_household_data()  # load fresh every request
+    # filter household_head containing query
+    results = df[df["household_head"].str.lower().str.contains(query, na=False)]
 
-    if not match.empty:
-        row = match.iloc[0]
-        return jsonify({
-            "household_head": row['household_head'],
-            "household_id": row['household_ID'],
-            "village": row['village']
-        })
-    return jsonify({"error": "Not found"})
+    return jsonify(
+        results[["household_head", "household_id", "village"]]
+        .head(10)
+        .to_dict(orient="records")
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)
